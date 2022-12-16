@@ -1,6 +1,30 @@
-## a simple server side rate limiter
-* In this simple project I control number of calls to getBooks API via rate limiter
-* I assumed it is a single node server. In a distributed architecture, 
-   we need to think about other solutions, for example a redis cluster that all pods have access to
-* To keep number of hits so far for a user, I used a concurrentMap to make it work in multi thread environment
-* I could use synchronization, but in high multi-thread apps it would be inefficient
+# ratelimiter
+
+with spring boot, and simple local cache
+
+
+# improvement
+use redis
+
+```
+private RateLimitInfo checkLimit(String username, boolean apply) {
+        String key = envPrefix + username;
+        Jedis jedis = jedisPool.getResource();
+        long now = System.currentTimeMillis();
+        long beforeInterval = now - intervalMS;
+
+        Transaction transaction = jedis.multi();
+        transaction.zremrangeByScore(key, 0, beforeInterval);
+        if (apply) {
+            transaction.zadd(key, now, UUID.randomUUID().toString());
+        }
+        transaction.zrangeByScoreWithScores(key, 0, System.currentTimeMillis());
+        transaction.expire(key, ttlSeconds);
+        List<Object> result = transaction.exec();
+        Object allUserTrans = apply ? result.get(2) : result.get(1);
+        LinkedHashSet<Tuple> userTransList = (LinkedHashSet<Tuple>) allUserTrans;
+        List<Long> timeStamps = userTransList.stream().map(tuple -> (long) tuple.getScore()).collect(Collectors.toList());
+        jedis.close();
+        return calculateLimit(timeStamps);
+ }
+ ```
