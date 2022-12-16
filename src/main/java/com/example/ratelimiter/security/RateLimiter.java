@@ -3,6 +3,7 @@ package com.example.ratelimiter.security;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class RateLimiter {
@@ -11,8 +12,8 @@ public class RateLimiter {
     private static final int LIMIT = 6;
 
     public RateLimiter() {
-        cache = new HashMap<>();
-    }
+        cache = new ConcurrentHashMap<>();
+    }//********************8
 
     public boolean checkLimit(String user) {
         long now = System.currentTimeMillis();
