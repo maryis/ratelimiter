@@ -1,4 +1,4 @@
-# ratelimiter
+# ratelimiter using Redis
 
 with spring boot, and simple local cache
 
